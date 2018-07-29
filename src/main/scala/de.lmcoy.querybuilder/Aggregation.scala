@@ -42,3 +42,33 @@ object Min {
   def apply(s: (String, String)): Min =
     new Min(Column(s._1), Some(Column(s._2)))
 }
+
+case class Avg(column: Column, alias: Option[Column] = None) extends Aggregation
+
+object Avg {
+  def apply(s: (String, String)): Avg =
+    new Avg(Column(s._1), Some(Column(s._2)))
+}
+
+case class Abs(column: Column, alias: Option[Column] = None) extends Aggregation
+
+object Abs {
+  def apply(s: (String, String)): Abs =
+    new Abs(Column(s._1), Some(Column(s._2)))
+}
+
+case class Ceil(column: Column, alias: Option[Column] = None)
+    extends Aggregation
+
+object Ceil {
+  def apply(s: (String, String)): Ceil =
+    new Ceil(Column(s._1), Some(Column(s._2)))
+}
+
+case class Floor(column: Column, alias: Option[Column] = None)
+    extends Aggregation
+
+object Floor {
+  def apply(s: (String, String)): Floor =
+    new Floor(Column(s._1), Some(Column(s._2)))
+}

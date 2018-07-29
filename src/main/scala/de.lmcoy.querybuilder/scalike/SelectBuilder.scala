@@ -1,7 +1,16 @@
 package de.lmcoy.querybuilder.scalike
 
 import de.lmcoy.querybuilder._
-import scalikejdbc.interpolation.SQLSyntax.{count, max, min, sum}
+import scalikejdbc.interpolation.SQLSyntax.{
+  count,
+  max,
+  min,
+  sum,
+  avg,
+  abs,
+  ceil,
+  floor
+}
 import scalikejdbc.{SQLSyntax, SelectSQLBuilder, select}
 import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.SyntaxProvider
 
@@ -28,6 +37,10 @@ class SelectBuilder[A](implicit g: SyntaxProvider[A]) {
       case Count(col, alias) => agg(col, alias, Some(count(_: SQLSyntax)))
       case Min(col, alias)   => agg(col, alias, Some(min))
       case Max(col, alias)   => agg(col, alias, Some(max))
+      case Avg(col, alias)   => agg(col, alias, Some(avg))
+      case Abs(col, alias)   => agg(col, alias, Some(abs))
+      case Ceil(col, alias)  => agg(col, alias, Some(ceil))
+      case Floor(col, alias) => agg(col, alias, Some(floor))
     }: _*)
   }
 
