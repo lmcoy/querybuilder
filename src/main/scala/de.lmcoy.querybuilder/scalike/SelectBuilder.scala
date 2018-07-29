@@ -1,8 +1,9 @@
-package de.lmcoy.querybuilder
+package de.lmcoy.querybuilder.scalike
 
-import de.lmcoy.querybuilder.QueryBuilder.SyntaxProvider
+import de.lmcoy.querybuilder._
 import scalikejdbc.interpolation.SQLSyntax.{count, max, min, sum}
-import scalikejdbc.{SQLSyntax, select, SelectSQLBuilder}
+import scalikejdbc.{SQLSyntax, SelectSQLBuilder, select}
+import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.SyntaxProvider
 
 class SelectBuilder[A](implicit g: SyntaxProvider[A]) {
 

@@ -10,10 +10,10 @@ sealed trait BinaryFilter extends Filter {
 /** > */
 case class Gt(left: Column, right: SQLType) extends BinaryFilter
 
-/** == */
+/** equals */
 case class Eq(left: Column, right: SQLType) extends BinaryFilter
 
-/** != */
+/** <> */
 case class Ne(left: Column, right: SQLType) extends BinaryFilter
 
 /** < */

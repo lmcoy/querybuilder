@@ -1,6 +1,6 @@
-package de.lmcoy.querybuilder
+package de.lmcoy.querybuilder.scalike
 
-import de.lmcoy.querybuilder.QueryBuilder.SyntaxProvider
+import de.lmcoy.querybuilder.{Aggregation, Id}
 import scalikejdbc._
 
 class GroupByBuilder[A](implicit g: SyntaxProvider[A]) {

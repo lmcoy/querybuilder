@@ -1,6 +1,7 @@
-package de.lmcoy.querybuilder
+package de.lmcoy.querybuilder.scalike
 
-import de.lmcoy.querybuilder.SelectBuilderTest.Table
+import de.lmcoy.querybuilder.scalike.SelectBuilderTest.Table
+import de.lmcoy.querybuilder._
 import org.scalatest.Matchers
 import org.scalatest.fixture.FlatSpec
 import scalikejdbc._

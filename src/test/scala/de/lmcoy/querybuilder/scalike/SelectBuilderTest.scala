@@ -1,12 +1,15 @@
-package de.lmcoy.querybuilder
+package de.lmcoy.querybuilder.scalike
 
+import de.lmcoy.querybuilder._
 import org.scalatest.Matchers
+import org.scalatest.fixture.FlatSpec
 import scalikejdbc._
 import scalikejdbc.scalatest.AutoRollback
-import org.scalatest.fixture.FlatSpec
 
 class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
+
   import SelectBuilderTest.Table
+
   ConnectionPool.singleton("jdbc:h2:mem:hello", "user", "pass")
   val alias = "t"
   implicit val t = Table.syntax(alias)
@@ -44,8 +47,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
 
       val result = sql.map(_.toMap()).toList().apply
       val expected = List(Map("X" -> 1, "Y" -> "Alice"),
-                          Map("X" -> 2, "Y" -> "Bob"),
-                          Map("X" -> 3, "Y" -> "Chris"))
+        Map("X" -> 2, "Y" -> "Bob"),
+        Map("X" -> 3, "Y" -> "Chris"))
 
       result should contain theSameElementsAs expected
   }
