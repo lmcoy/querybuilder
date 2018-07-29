@@ -93,9 +93,15 @@ object ConditionBuilder {
   implicit val binderValueType = new ParameterBinderFactory[ValueType] {
     def apply(value: ValueType): ParameterBinderWithValue =
       value match {
-        case IntType(i)    => Binders.int(i)
-        case StringType(s) => Binders.string(s)
-        case DoubleType(d) => Binders.double(d)
+        case IntType(i)        => Binders.int(i)
+        case StringType(s)     => Binders.string(s)
+        case DoubleType(d)     => Binders.double(d)
+        case BooleanType(b)    => Binders.boolean(b)
+        case BigDecimalType(b) => Binders.bigDecimal(b)
+        case BigIntType(b)     => Binders.bigInt(b)
+        case DateType(b)       => Binders.sqlDate(b)
+        case TimeType(b)       => Binders.sqlTime(b)
+        case TimestampType(b)  => Binders.sqlTimestamp(b)
       }
 
   }
