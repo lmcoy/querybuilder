@@ -40,7 +40,9 @@ class ConditionBuilder[A](implicit g: SyntaxProvider[A]) {
     }
   }
 
-  private def trinary(filter: TrinaryFilter,initial: ConditionSQLBuilder[A] ): ConditionSQLBuilder[A] = {
+  private def trinary(
+      filter: TrinaryFilter,
+      initial: ConditionSQLBuilder[A]): ConditionSQLBuilder[A] = {
     filter match {
       case Between(column, lower, upper) =>
         initial.between(g.column(column.field), lower, upper)
@@ -69,12 +71,12 @@ class ConditionBuilder[A](implicit g: SyntaxProvider[A]) {
   private def build(filter: Filter, bracket: Boolean): Transform[A] = {
     initial =>
       filter match {
-        case b: BinaryFilter => binary(b, initial)
-        case u: UnaryFilter  => unary(u, initial)
+        case b: BinaryFilter  => binary(b, initial)
+        case u: UnaryFilter   => unary(u, initial)
         case t: TrinaryFilter => trinary(t, initial)
-        case a: And          => connectSeq(a.filters, initial, q => q.and, bracket)
-        case o: Or           => connectSeq(o.filters, initial, q => q.or, bracket)
-        case Not(f)          => build(f, bracket = true)(initial.not)
+        case a: And           => connectSeq(a.filters, initial, q => q.and, bracket)
+        case o: Or            => connectSeq(o.filters, initial, q => q.or, bracket)
+        case Not(f)           => build(f, bracket = true)(initial.not)
         case Like(column, pattern) =>
           initial.like(g.column(column.field), pattern)
       }
@@ -97,7 +99,5 @@ object ConditionBuilder {
       }
 
   }
-
-
 
 }

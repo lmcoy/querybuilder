@@ -133,6 +133,23 @@ class ConditionBuilderTest extends FlatSpec with Matchers with AutoRollback {
         s"select $alias.id from table $alias  where  $alias.id = ? or  $alias.id = ? or  $alias.id = ?")
   }
 
+  it should "be able to add a 'like' where clause" in { implicit session =>
+    val columns = List[Aggregation]("id")
+
+    query(columns, Like("id", "%test%")).statement should equal(
+      s"select $alias.id from table $alias  where  $alias.id like ?")
+  }
+
+  it should "connect filters with 'and' and 'or'" in { implicit session =>
+    val columns = List[Aggregation]("id")
+
+    val filter = And(Or(Eq("id", 1), Eq("id", 5)),
+                     Or(Eq("name", "Alice"), Eq("name", "Bob")))
+    val expected =
+      s"select $alias.id from table $alias  where (  $alias.id = ? or  $alias.id = ?) and (  $alias.name = ? or  $alias.name = ?)"
+    query(columns, filter).statement should equal(expected)
+  }
+
 }
 
 object ConditionBuilderTest {
@@ -141,7 +158,10 @@ object ConditionBuilderTest {
 
   def query(columns: List[Aggregation], filter: Filter) = {
     withSQL {
-      val select = SelectBuilder(t).build(columns).from(t.support as t)
+      val select = SelectBuilder(t)
+        .build(columns)
+        .from(t.support as t)
+        .asInstanceOf[SelectSQLBuilder[Table]]
       ConditionBuilder(t)
         .build(filter)(select.where)
         .asInstanceOf[ConditionSQLBuilder[Table]]

@@ -47,8 +47,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
 
       val result = sql.map(_.toMap()).toList().apply
       val expected = List(Map("X" -> 1, "Y" -> "Alice"),
-        Map("X" -> 2, "Y" -> "Bob"),
-        Map("X" -> 3, "Y" -> "Chris"))
+                          Map("X" -> 2, "Y" -> "Bob"),
+                          Map("X" -> 3, "Y" -> "Chris"))
 
       result should contain theSameElementsAs expected
   }
