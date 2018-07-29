@@ -109,6 +109,61 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
       s"select max($alias.id), max($alias.id) as X from table $alias")
   }
 
+  it should "be able to use the aggregation 'avg'" in { implicit session =>
+    val columns = List[Aggregation](Avg("id"), Avg("id" -> "X"))
+
+    val sql = withSQL {
+      SelectBuilder(t)
+        .build(columns)
+        .from(t.support as t)
+        .asInstanceOf[SQLBuilder[Table]]
+    }
+
+    sql.statement should equal(
+      s"select avg($alias.id), avg($alias.id) as X from table $alias")
+  }
+
+  it should "be able to use the aggregation 'abs'" in { implicit session =>
+    val columns = List[Aggregation](Abs("id"), Abs("id" -> "X"))
+
+    val sql = withSQL {
+      SelectBuilder(t)
+        .build(columns)
+        .from(t.support as t)
+        .asInstanceOf[SQLBuilder[Table]]
+    }
+
+    sql.statement should equal(
+      s"select abs($alias.id), abs($alias.id) as X from table $alias")
+  }
+
+  it should "be able to use the aggregation 'ceil'" in { implicit session =>
+    val columns = List[Aggregation](Ceil("id"), Ceil("id" -> "X"))
+
+    val sql = withSQL {
+      SelectBuilder(t)
+        .build(columns)
+        .from(t.support as t)
+        .asInstanceOf[SQLBuilder[Table]]
+    }
+
+    sql.statement should equal(
+      s"select ceil($alias.id), ceil($alias.id) as X from table $alias")
+  }
+
+  it should "be able to use the aggregation 'floor'" in { implicit session =>
+    val columns = List[Aggregation](Floor("id"), Floor("id" -> "X"))
+
+    val sql = withSQL {
+      SelectBuilder(t)
+        .build(columns)
+        .from(t.support as t)
+        .asInstanceOf[SQLBuilder[Table]]
+    }
+
+    sql.statement should equal(
+      s"select floor($alias.id), floor($alias.id) as X from table $alias")
+  }
 }
 
 object SelectBuilderTest {
