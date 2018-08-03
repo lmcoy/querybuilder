@@ -8,8 +8,8 @@ class GroupByBuilder[A](implicit g: SyntaxProvider[A]) {
       implicit g: SyntaxProvider[A]): Seq[SQLSyntax] = {
     columns
       .filter(_ match { // remove all aggregations
-        case Id(_, _) => false
-        case _        => true
+        case Id(_, _) => true
+        case _        => false
       })
       .map(
         name => g.column(name.column.field)

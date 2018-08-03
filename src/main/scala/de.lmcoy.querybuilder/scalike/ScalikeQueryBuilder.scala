@@ -4,7 +4,7 @@ import de.lmcoy.querybuilder.{Query, QueryBuilder}
 import scalikejdbc._
 
 class ScalikeQueryBuilder[A](implicit tableSyntax: SyntaxProvider[A],
-                             session: AutoSession)
+                             session: DBSession)
     extends QueryBuilder {
 
   def build(query: Query) = {
