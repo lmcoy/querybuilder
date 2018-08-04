@@ -164,6 +164,44 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     sql.statement should equal(
       s"select floor($alias.id), floor($alias.id) as X from table $alias")
   }
+
+  it should "be able to use 'select distinct' if the distinct flag is set" in {
+    implicit session =>
+
+    val sql = withSQL {
+      SelectBuilder
+        .build(List("id", "name"), distinct = true)(t)
+        .from(t.support as t)
+    }
+
+    sql.statement should equal (
+      s"select distinct $alias.id, $alias.name from table $alias"
+    )
+  }
+
+  it should "be able to use 'count(distinct x)'" in { implicit session =>
+    val sql = withSQL {
+      SelectBuilder
+        .build(List("id", Count("name", distinct = true, alias = Some("x"))))(t)
+        .from(t.support as t)
+    }
+
+    sql.statement should equal (
+      s"select $alias.id, count(distinct $alias.name) as x from table $alias"
+    )
+  }
+
+  it should "be able to use 'sum(distinct x)'" in { implicit session =>
+    val sql = withSQL {
+      SelectBuilder
+        .build(List("id", Sum("name", distinct = true, alias = Some("x"))))(t)
+        .from(t.support as t)
+    }
+
+    sql.statement should equal (
+      s"select $alias.id, sum(distinct $alias.name) as x from table $alias"
+    )
+  }
 }
 
 object SelectBuilderTest {

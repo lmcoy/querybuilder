@@ -1,5 +1,6 @@
 package de.lmcoy.querybuilder.scalike
 
+import de.lmcoy.querybuilder.{Avg, Count, Lt, Query}
 import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.Environment
 import de.lmcoy.querybuilder.{Avg, Lt, Query}
 import org.scalatest.Matchers
@@ -58,7 +59,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
 
   "ScalikeQueryBuilder" should "be able to query a column" in {
     implicit session =>
-      val q = Query(columns = List("name"), None)
+      val q = Query(columns = List("name"), filter = None, distinct = false)
       val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
       data should contain(Map("NAME" -> "Alice"))
@@ -67,9 +68,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
   }
 
   it should "be able to use aggregations" in { implicit session =>
-    val q = Query(columns = List("city", Avg("Salary", Some("Salary"))),
-                  filter = None,
-                  limit = None)
+    val q = Query(columns = List("city", Avg("Salary", Some("Salary"))), filter = None, distinct = false)
     val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 25000))
@@ -79,11 +78,30 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
   it should "be able to use aggregations and filter" in { implicit session =>
     val q = Query(columns = List("city", Avg("Salary", Some("Salary"))),
                   filter = Some(Lt("Salary", 25000)),
-                  limit = None)
+                  limit = None,
+                  distinct = false)
     val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 20000))
     data should contain(Map("CITY" -> "Berlin", "SALARY" -> 10000))
+  }
+
+  it should "be able to use select distinct" in { implicit session =>
+    val q = Query(columns = List("city"), filter=None, distinct = true)
+    val data = new ScalikeQueryBuilder[Employee].build(q).query()
+
+    data should contain(Map("CITY" -> "Hamburg"))
+    data should contain(Map("CITY" -> "Berlin"))
+  }
+
+  it should "be able to count distinct values of a column" in { implicit session =>
+    val q = Query(
+      columns = List(Count("city", distinct=true, alias=Some("x"))),
+      filter=None, distinct = false
+    )
+    val data = new ScalikeQueryBuilder[Employee].build(q).query()
+
+    data should contain(Map("X" -> 2))
   }
 
   it should "be able to add limit to a query" in { implicit session =>
@@ -94,7 +112,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
         .asInstanceOf[GroupBySQLBuilder[Employee]]
       new ScalikeQueryBuilder[Employee]
         .buildLimit(s)
-        .run(Environment(Query(Nil, limit = Some(10)),t))
+        .run(Environment(Query(Nil, limit = Some(10), distinct = false),t))
     }
     sql.statement should equal(
       "select t.id as i_on_t, t.name as n_on_t, t.dateofbirth as d_on_t, t.city as c_on_t, t.salary as s_on_t from employees t   limit 10")
