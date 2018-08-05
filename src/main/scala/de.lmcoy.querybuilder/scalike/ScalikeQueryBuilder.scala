@@ -37,13 +37,18 @@ class ScalikeQueryBuilder[A](implicit tableSyntax: SyntaxProvider[A],
       query => GroupByBuilder(tableSyntax).build(filtered, query.columns)
     )
 
+  // lift to Reader
+  private[scalike] def buildLimit(groupBy: GroupBySQLBuilder[A]): QueryReader[PagingSQLBuilder[A]] =
+    Reader(query => query.limit.map(l =>groupBy.limit(l)).getOrElse(groupBy))
+
   def buildSQL(query: Query) = {
     withSQL {
       val reader = for {
         select <- buildSelect
         filtered <- buildWhere(select)
         grouped <- buildGroupBy(filtered)
-      } yield grouped
+        fin <- buildLimit(grouped)
+      } yield fin
       reader.run(query)
     }
   }

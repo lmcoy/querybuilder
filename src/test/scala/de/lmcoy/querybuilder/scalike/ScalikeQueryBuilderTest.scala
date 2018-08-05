@@ -66,7 +66,9 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
   }
 
   it should "be able to use aggregations" in { implicit session =>
-    val q = Query(columns = List("city", Avg("Salary", Some("Salary"))), None)
+    val q = Query(columns = List("city", Avg("Salary", Some("Salary"))),
+                  filter = None,
+                  limit = None)
     val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 25000))
@@ -75,11 +77,26 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
 
   it should "be able to use aggregations and filter" in { implicit session =>
     val q = Query(columns = List("city", Avg("Salary", Some("Salary"))),
-                  Some(Lt("Salary", 25000)))
+                  filter = Some(Lt("Salary", 25000)),
+                  limit = None)
     val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 20000))
     data should contain(Map("CITY" -> "Berlin", "SALARY" -> 10000))
+  }
+
+  it should "be able to add limit to a query" in { implicit session =>
+    val sql: SQL[Employee, NoExtractor] = withSQL {
+      val s = select
+        .from(t.support as t)
+        .where(None)
+        .asInstanceOf[GroupBySQLBuilder[Employee]]
+      new ScalikeQueryBuilder[Employee]
+        .buildLimit(s)
+        .run(Query(Nil, limit = Some(10)))
+    }
+    sql.statement should equal(
+      "select t.id as i_on_t, t.name as n_on_t, t.dateofbirth as d_on_t, t.city as c_on_t, t.salary as s_on_t from employees t   limit 10")
   }
 }
 
