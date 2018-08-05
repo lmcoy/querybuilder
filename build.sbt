@@ -12,5 +12,6 @@ libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % "3.0.5",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "org.json4s" %% "json4s-native" % "3.6.0",
-  "org.json4s" %% "json4s-jackson" % "3.6.0"
+  "org.json4s" %% "json4s-jackson" % "3.6.0",
+  "org.typelevel" %% "cats-core" % "1.2.0"
 )

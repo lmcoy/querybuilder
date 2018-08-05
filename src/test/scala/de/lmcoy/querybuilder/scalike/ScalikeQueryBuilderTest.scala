@@ -58,7 +58,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
   "ScalikeQueryBuilder" should "be able to query a column" in {
     implicit session =>
       val q = Query(columns = List("name"), None)
-      val data = new ScalikeQueryBuilder[Employee].queryList(q)
+      val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
       data should contain(Map("NAME" -> "Alice"))
       data should contain(Map("NAME" -> "Bob"))
@@ -67,7 +67,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
 
   it should "be able to use aggregations" in { implicit session =>
     val q = Query(columns = List("city", Avg("Salary", Some("Salary"))), None)
-    val data = new ScalikeQueryBuilder[Employee].queryList(q)
+    val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 25000))
     data should contain(Map("CITY" -> "Berlin", "SALARY" -> 10000))
@@ -76,7 +76,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
   it should "be able to use aggregations and filter" in { implicit session =>
     val q = Query(columns = List("city", Avg("Salary", Some("Salary"))),
                   Some(Lt("Salary", 25000)))
-    val data = new ScalikeQueryBuilder[Employee].queryList(q)
+    val data = new ScalikeQueryBuilder[Employee].build(q).query()
 
     data should contain(Map("CITY" -> "Hamburg", "SALARY" -> 20000))
     data should contain(Map("CITY" -> "Berlin", "SALARY" -> 10000))
