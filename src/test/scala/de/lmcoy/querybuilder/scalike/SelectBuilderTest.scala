@@ -36,8 +36,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
       val columns = List[Aggregation]("id" -> "X", "name" -> "Y")
 
       val sql = withSQL {
-        SelectBuilder(t)
-          .build(columns)
+        SelectBuilder
+          .build(columns)(t)
           .from(t.support as t)
           .asInstanceOf[SQLBuilder[Table]]
       }
@@ -57,8 +57,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Sum("id"), Sum("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -71,8 +71,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Count("id"), Count("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -85,8 +85,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Min("id"), Min("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -99,8 +99,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Max("id"), Max("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -113,8 +113,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Avg("id"), Avg("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -127,8 +127,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Abs("id"), Abs("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -141,8 +141,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Ceil("id"), Ceil("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }
@@ -155,8 +155,8 @@ class SelectBuilderTest extends FlatSpec with Matchers with AutoRollback {
     val columns = List[Aggregation](Floor("id"), Floor("id" -> "X"))
 
     val sql = withSQL {
-      SelectBuilder(t)
-        .build(columns)
+      SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SQLBuilder[Table]]
     }

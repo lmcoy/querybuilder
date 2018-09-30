@@ -1,47 +1,49 @@
 package de.lmcoy.querybuilder.scalike
 
 import cats.data.Reader
-import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.QueryReader
+import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.{Environment, QueryReader}
 import de.lmcoy.querybuilder.{DBQuery, Query, QueryBuilder}
-import scalikejdbc._
+import scalikejdbc.{SyntaxProvider, _}
 
 class ScalikeQueryBuilder[A](implicit tableSyntax: SyntaxProvider[A],
                              session: DBSession)
     extends QueryBuilder {
 
   // lift to Reader
-  private def buildSelect: QueryReader[SelectSQLBuilder[A]] =
+  private def buildSelect: QueryReader[A, SelectSQLBuilder[A]] =
     Reader(
-      query =>
-        SelectBuilder(tableSyntax)
-          .build(query.columns)
-          .from(tableSyntax.support as tableSyntax)
+      env =>
+        SelectBuilder
+          .build(env.query.columns)(env.syntaxProvider)
+          .from(env.syntaxProvider.support as env.syntaxProvider)
           .asInstanceOf[SelectSQLBuilder[A]]
     )
 
   // lift to Reader
   private def buildWhere(
-      select: SelectSQLBuilder[A]): QueryReader[ConditionSQLBuilder[A]] =
+      select: SelectSQLBuilder[A]): QueryReader[A, ConditionSQLBuilder[A]] =
     Reader(
-      query =>
-        query.filter
+      env =>
+        env.query.filter
           .map(filter =>
-            ConditionBuilder(tableSyntax).build(filter)(select.where))
+            ConditionBuilder.build(filter)(env.syntaxProvider)(select.where))
           .getOrElse(select.where(None))
     )
 
   // lift to Reader
   private def buildGroupBy(
-      filtered: ConditionSQLBuilder[A]): QueryReader[GroupBySQLBuilder[A]] =
+      filtered: ConditionSQLBuilder[A]): QueryReader[A, GroupBySQLBuilder[A]] =
     Reader(
-      query => GroupByBuilder(tableSyntax).build(filtered, query.columns)
+      env =>
+        GroupByBuilder.build(filtered, env.query.columns)(env.syntaxProvider)
     )
 
   // lift to Reader
-  private[scalike] def buildLimit(groupBy: GroupBySQLBuilder[A]): QueryReader[PagingSQLBuilder[A]] =
-    Reader(query => query.limit.map(l =>groupBy.limit(l)).getOrElse(groupBy))
+  private[scalike] def buildLimit(
+      groupBy: GroupBySQLBuilder[A]): QueryReader[A, PagingSQLBuilder[A]] =
+    Reader(env => env.query.limit.map(l => groupBy.limit(l)).getOrElse(groupBy))
 
-  def buildSQL(query: Query) = {
+  def buildSQL(query: Query): SQL[A, NoExtractor] = {
     withSQL {
       val reader = for {
         select <- buildSelect
@@ -49,11 +51,11 @@ class ScalikeQueryBuilder[A](implicit tableSyntax: SyntaxProvider[A],
         grouped <- buildGroupBy(filtered)
         fin <- buildLimit(grouped)
       } yield fin
-      reader.run(query)
+      reader.run(Environment(query, tableSyntax))
     }
   }
 
-  def build(query: Query) = {
+  def build(query: Query): DBQuery = {
     val q = buildSQL(query)
 
     new DBQuery {
@@ -69,5 +71,6 @@ object ScalikeQueryBuilder {
   type SyntaxProvider[A] =
     QuerySQLSyntaxProvider[SQLSyntaxSupport[A], A]
 
-  type QueryReader[A] = Reader[Query, A]
+  case class Environment[A](query: Query, syntaxProvider: SyntaxProvider[A])
+  type QueryReader[A, B] = Reader[Environment[A], B]
 }

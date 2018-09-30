@@ -1,4 +1,5 @@
 package de.lmcoy.querybuilder
+import scala.language.implicitConversions
 
 case class ColumnError(msg: String) extends Exception {
   override def getMessage: String = msg

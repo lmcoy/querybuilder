@@ -1,5 +1,6 @@
 package de.lmcoy.querybuilder.scalike
 
+import de.lmcoy.querybuilder.scalike.ScalikeQueryBuilder.Environment
 import de.lmcoy.querybuilder.{Avg, Lt, Query}
 import org.scalatest.Matchers
 import org.scalatest.fixture.FlatSpec
@@ -93,7 +94,7 @@ class ScalikeQueryBuilderTest extends FlatSpec with Matchers with AutoRollback {
         .asInstanceOf[GroupBySQLBuilder[Employee]]
       new ScalikeQueryBuilder[Employee]
         .buildLimit(s)
-        .run(Query(Nil, limit = Some(10)))
+        .run(Environment(Query(Nil, limit = Some(10)),t))
     }
     sql.statement should equal(
       "select t.id as i_on_t, t.name as n_on_t, t.dateofbirth as d_on_t, t.city as c_on_t, t.salary as s_on_t from employees t   limit 10")

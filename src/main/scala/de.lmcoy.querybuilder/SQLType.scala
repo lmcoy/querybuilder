@@ -1,5 +1,7 @@
 package de.lmcoy.querybuilder
 
+import scala.language.implicitConversions
+
 sealed trait SQLType
 
 object SQLType {

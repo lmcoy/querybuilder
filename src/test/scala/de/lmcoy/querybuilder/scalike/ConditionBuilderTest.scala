@@ -158,12 +158,12 @@ object ConditionBuilderTest {
 
   def query(columns: List[Aggregation], filter: Filter) = {
     withSQL {
-      val select = SelectBuilder(t)
-        .build(columns)
+      val select = SelectBuilder
+        .build(columns)(t)
         .from(t.support as t)
         .asInstanceOf[SelectSQLBuilder[Table]]
-      ConditionBuilder(t)
-        .build(filter)(select.where)
+      ConditionBuilder
+        .build(filter)(t)(select.where)
         .asInstanceOf[ConditionSQLBuilder[Table]]
     }
   }

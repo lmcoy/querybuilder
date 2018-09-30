@@ -1,4 +1,5 @@
 package de.lmcoy.querybuilder
+import scala.language.implicitConversions
 
 trait Aggregation {
   def column: Column
