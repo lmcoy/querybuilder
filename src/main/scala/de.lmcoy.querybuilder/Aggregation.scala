@@ -15,19 +15,19 @@ object Aggregation {
 
 case class Id(column: Column, alias: Option[Column] = None) extends Aggregation
 
-case class Sum(column: Column, alias: Option[Column] = None) extends Aggregation
+case class Sum(column: Column, distinct: Boolean = false, alias: Option[Column] = None) extends Aggregation
 
 object Sum {
   def apply(s: (String, String)): Sum =
-    new Sum(Column(s._1), Some(Column(s._2)))
+    new Sum(Column(s._1), alias = Some(Column(s._2)))
 }
 
-case class Count(column: Column, alias: Option[Column] = None)
+case class Count(column: Column, distinct: Boolean = false, alias: Option[Column] = None)
     extends Aggregation
 
 object Count {
   def apply(s: (String, String)): Count =
-    new Count(Column(s._1), Some(Column(s._2)))
+    new Count(Column(s._1), alias = Some(Column(s._2)))
 }
 
 case class Max(column: Column, alias: Option[Column] = None) extends Aggregation

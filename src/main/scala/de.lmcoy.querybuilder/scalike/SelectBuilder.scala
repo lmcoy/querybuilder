@@ -6,6 +6,7 @@ import scalikejdbc.interpolation.SQLSyntax.{
   avg,
   ceil,
   count,
+  distinct => SQLDistinct,
   floor,
   max,
   min,
@@ -27,15 +28,17 @@ object SelectBuilder {
     }
 
   def build[A](
-      columns: List[Aggregation]): SyntaxProvider[A] => SelectSQLBuilder[A] =
+      columns: List[Aggregation], distinct: Boolean = false): SyntaxProvider[A] => SelectSQLBuilder[A] =
     syntaxProvider => {
-      select(
-        columns
+      val cols = columns
           .map {
             case Id(col, alias)  => agg[A](col, alias)
-            case Sum(col, alias) => agg[A](col, alias, Some(sum))
-            case Count(col, alias) =>
-              agg[A](col, alias, Some(count(_: SQLSyntax)))
+            case Sum(col, isdist, alias)   =>
+              if (isdist) agg[A](col, alias, Some(c => sum(SQLDistinct(c))))
+              else agg[A](col, alias, Some(sum))
+            case Count(col, isdist, alias) =>
+              if (isdist) agg[A](col, alias, Some(c => count(SQLDistinct(c))))
+              else agg[A](col, alias, Some(count))
             case Min(col, alias)   => agg[A](col, alias, Some(min))
             case Max(col, alias)   => agg[A](col, alias, Some(max))
             case Avg(col, alias)   => agg[A](col, alias, Some(avg))
@@ -43,7 +46,12 @@ object SelectBuilder {
             case Ceil(col, alias)  => agg[A](col, alias, Some(ceil))
             case Floor(col, alias) => agg[A](col, alias, Some(floor))
           }
-          .map(_(syntaxProvider)): _*)
+          .map(_(syntaxProvider))
+
+      if (distinct)
+        select(SQLDistinct(cols: _*))
+      else
+        select(cols: _*)
     }
 
 }

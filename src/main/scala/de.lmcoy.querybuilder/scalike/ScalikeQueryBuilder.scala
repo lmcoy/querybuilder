@@ -14,7 +14,7 @@ class ScalikeQueryBuilder[A](implicit tableSyntax: SyntaxProvider[A],
     Reader(
       env =>
         SelectBuilder
-          .build(env.query.columns)(env.syntaxProvider)
+          .build(env.query.columns, distinct = env.query.distinct)(env.syntaxProvider)
           .from(env.syntaxProvider.support as env.syntaxProvider)
           .asInstanceOf[SelectSQLBuilder[A]]
     )
