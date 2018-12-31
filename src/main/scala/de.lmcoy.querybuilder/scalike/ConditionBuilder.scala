@@ -54,13 +54,12 @@ object ConditionBuilder {
     syntaxProvider => {
       def connect(in: ConditionSQLBuilder[A]) = {
         val first =
-          build(filters.head, bracket = true)(syntaxProvider)(
-            in.asInstanceOf[ConditionSQLBuilder[A]])
+          build(filters.head, bracket = true)(syntaxProvider)(in)
         filters.tail.foldLeft(first)((acc, filter) =>
           build(filter, bracket = true)(syntaxProvider)(func(acc)))
       }
       if (bracket)
-        initial.withRoundBracket[A] { in =>
+        initial.withRoundBracket { in =>
           connect(in.asInstanceOf[ConditionSQLBuilder[A]])
         } else connect(initial)
     }
