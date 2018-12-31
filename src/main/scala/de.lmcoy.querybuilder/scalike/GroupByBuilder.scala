@@ -9,7 +9,7 @@ object GroupByBuilder {
     syntaxProvider => {
       columns
         .filter(_ match { // remove all aggregations
-          case Id(_, _) => true
+          case _: Id => true
           case _        => false
         })
         .map(
@@ -20,10 +20,6 @@ object GroupByBuilder {
   def build[A](
       builder: ConditionSQLBuilder[A],
       columns: List[Aggregation]): SyntaxProvider[A] => GroupBySQLBuilder[A] =
-    syntaxProvider => {
-      columnsToSQLSyntax(columns)(syntaxProvider) match {
-        case Nil                => builder.groupBy()
-        case c: List[SQLSyntax] => builder.groupBy(c: _*)
-      }
-    }
+    syntaxProvider =>
+      builder.groupBy(columnsToSQLSyntax(columns)(syntaxProvider): _*)
 }

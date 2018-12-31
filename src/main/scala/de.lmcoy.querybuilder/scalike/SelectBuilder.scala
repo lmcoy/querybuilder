@@ -28,25 +28,33 @@ object SelectBuilder {
     }
 
   def build[A](
-      columns: List[Aggregation], distinct: Boolean = false): SyntaxProvider[A] => SelectSQLBuilder[A] =
+      columns: List[Aggregation],
+      distinct: Boolean = false): SyntaxProvider[A] => SelectSQLBuilder[A] =
     syntaxProvider => {
       val cols = columns
-          .map {
-            case Id(col, alias)  => agg[A](col, alias)
-            case Sum(col, isdist, alias)   =>
-              if (isdist) agg[A](col, alias, Some(c => sum(SQLDistinct(c))))
-              else agg[A](col, alias, Some(sum))
-            case Count(col, isdist, alias) =>
-              if (isdist) agg[A](col, alias, Some(c => count(SQLDistinct(c))))
-              else agg[A](col, alias, Some(count))
-            case Min(col, alias)   => agg[A](col, alias, Some(min))
-            case Max(col, alias)   => agg[A](col, alias, Some(max))
-            case Avg(col, alias)   => agg[A](col, alias, Some(avg))
-            case Abs(col, alias)   => agg[A](col, alias, Some(abs))
-            case Ceil(col, alias)  => agg[A](col, alias, Some(ceil))
-            case Floor(col, alias) => agg[A](col, alias, Some(floor))
+        .map { column =>
+          def applyAggregation =
+            (maybeAggFunc: Option[SQLSyntax => SQLSyntax]) =>
+              agg[A](column.column, column.alias, maybeAggFunc)
+          column match {
+            case _: Id => applyAggregation(None)
+            case Sum(_, isDistinct, _) if isDistinct =>
+              applyAggregation(Some(c => sum(SQLDistinct(c))))
+            case Sum(_, isDistinct, _) if !isDistinct =>
+              applyAggregation(Some(sum))
+            case Count(_, isDistinct, _) if isDistinct =>
+              applyAggregation(Some(c => count(SQLDistinct(c))))
+            case Count(_, isDistinct, _) if !isDistinct =>
+              applyAggregation(Some(count))
+            case _: Min   => applyAggregation(Some(min))
+            case _: Max   => applyAggregation(Some(max))
+            case _: Avg   => applyAggregation(Some(avg))
+            case _: Abs   => applyAggregation(Some(abs))
+            case _: Ceil  => applyAggregation(Some(ceil))
+            case _: Floor => applyAggregation(Some(floor))
           }
-          .map(_(syntaxProvider))
+        }
+        .map(_(syntaxProvider))
 
       if (distinct)
         select(SQLDistinct(cols: _*))
