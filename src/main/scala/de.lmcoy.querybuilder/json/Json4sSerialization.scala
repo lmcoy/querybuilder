@@ -1,10 +1,18 @@
 package de.lmcoy.querybuilder.json
 
 import de.lmcoy.querybuilder._
-import org.json4s.{CustomSerializer, Extraction, Formats, NoTypeHints}
+import org.json4s.{
+  CustomSerializer,
+  Extraction,
+  Formats,
+  MappingException,
+  NoTypeHints
+}
 import org.json4s.JsonAST._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.Serialization
+
+import scala.util.{Failure, Success, Try}
 
 object Json4sSerialization {
 
@@ -159,10 +167,104 @@ object Json4sSerialization {
           }
       ))
 
+  class AggregationSerializer
+      extends CustomSerializer[Aggregation](implicit format =>
+        (
+          {
+            case jstring: JString =>
+              val str = jstring.extract[String]
+              Id(Column(str), None)
+            case jobj: JObject =>
+              import AggregationSerializer.jsonToDistinct
+
+              val column = Column((jobj \ "column").extract[String])
+              val alias =
+                Try((jobj \ "as").extract[String]).toOption.map(Column.apply)
+              Try((jobj \ "func").extract[String]) match {
+                case Success(value) =>
+                  value match {
+                    case "sum" =>
+                      Sum(column, distinct = jsonToDistinct(jobj), alias)
+                    case "count" =>
+                      Count(column, distinct = jsonToDistinct(jobj), alias)
+                    case "max" =>
+                      Max(column, alias)
+                    case "min" =>
+                      Min(column, alias)
+                    case "avg" =>
+                      Avg(column, alias)
+                    case "abs" =>
+                      Abs(column, alias)
+                    case "ceil" =>
+                      Ceil(column, alias)
+                    case "floor" =>
+                      Floor(column, alias)
+                    case f =>
+                      throw new MappingException(s"unknown function '$f'")
+                  }
+                case Failure(_) => Id(column, alias)
+              }
+
+          }, {
+            case Id(column, alias) =>
+              alias match {
+                case None => JString(column.field)
+                case as =>
+                  AggregationSerializer.aggToJson(None, column, as)
+              }
+            case Sum(column, distinct, as) =>
+              AggregationSerializer
+                .aggToJson(Some("sum"), column, as) ~ AggregationSerializer
+                .distinctToJson(distinct)
+            case Count(column, distinct, as) =>
+              AggregationSerializer
+                .aggToJson(Some("count"), column, as) ~ AggregationSerializer
+                .distinctToJson(distinct)
+            case Avg(column, as) =>
+              AggregationSerializer.aggToJson(Some("avg"), column, as)
+            case Min(column, as) =>
+              AggregationSerializer.aggToJson(Some("min"), column, as)
+            case Max(column, as) =>
+              AggregationSerializer.aggToJson(Some("max"), column, as)
+            case Ceil(column, as) =>
+              AggregationSerializer.aggToJson(Some("ceil"), column, as)
+            case Floor(column, as) =>
+              AggregationSerializer.aggToJson(Some("floor"), column, as)
+            case Abs(column, as) =>
+              AggregationSerializer.aggToJson(Some("abs"), column, as)
+            case a: Aggregation =>
+              throw new MappingException(
+                s"${a.getClass.getCanonicalName} not serializable (not implemented)")
+          }
+      ))
+
+  object AggregationSerializer {
+    private def aggToJson(func: Option[String],
+                          column: Column,
+                          as: Option[Column]) = {
+      val obj = ("column" -> column.field) ~ ("as" -> as.map(_.field))
+      func match {
+        case None    => obj
+        case Some(f) => ("func" -> f) ~ obj
+      }
+
+    }
+
+    private def distinctToJson(distinct: Boolean) = {
+      "distinct" -> (if (distinct) Some(true) else None)
+    }
+
+    private def jsonToDistinct(jobj: JObject)(implicit formats: Formats) = {
+      Try((jobj \ "distinct").extract[Boolean]).getOrElse(false)
+    }
+
+  }
+
   implicit val formats = Serialization.formats(NoTypeHints) +
     new ValueTypeSerializer +
     new SQLTypeSerializer +
     new FilterSerializer +
-    new BinaryFilterSerializer
+    new BinaryFilterSerializer +
+    new AggregationSerializer
 
 }
