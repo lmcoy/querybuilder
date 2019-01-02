@@ -1,6 +1,7 @@
 package de.lmcoy.querybuilder.json
 
 import de.lmcoy.querybuilder._
+import org.json4s.MappingException
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.json4s.jackson.Serialization.{read, write}
@@ -13,7 +14,9 @@ class Json4sSerializationTest extends FlatSpec with Matchers {
                                                        ma: Manifest[A]): Unit =
     read[B](json) match {
       case a: A => f(a)
-      case t => fail(s"unexpected type: ${t.getClass.getCanonicalName}, expected: ${ma.toString()}")
+      case t =>
+        fail(
+          s"unexpected type: ${t.getClass.getCanonicalName}, expected: ${ma.toString()}")
     }
 
   "Json4sSerialization" should "be able to serialize a IntType to json" in {
@@ -343,4 +346,298 @@ class Json4sSerializationTest extends FlatSpec with Matchers {
     readAs[Like, Filter](json) { _ should equal(expected) }
   }
 
+  // Aggregation
+
+  it should "be able to serialize an 'Id' aggregation" in {
+    val id = Id(Column("id"))
+    val expected = """"id""""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Id' aggregation" in {
+    val expected = Id(Column("id"))
+    val json =
+      """
+        |"id"
+      """.stripMargin
+    readAs[Id, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Id' aggregation with alias" in {
+    val id = Id(Column("id"), Some("id2"))
+    val expected = """{"column":"id","as":"id2"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Id' aggregation with alias" in {
+    val expected = Id(Column("id"), Some("id2"))
+    val json = """{"column":"id","as":"id2"}"""
+    readAs[Id, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Sum
+
+  it should "be able to serialize an 'Sum' aggregation" in {
+    val id = Sum(Column("id"), alias = None)
+    val expected = """{"func":"sum","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Sum' aggregation" in {
+    val expected = Sum(Column("id"))
+    val json = """{"func":"sum","column":"id"}"""
+    readAs[Sum, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Sum' aggregation with alias" in {
+    val id = Sum(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"sum","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Sum' aggregation with alias" in {
+    val expected = Sum(Column("id"), alias = Some("alias"))
+    val json = """{"func":"sum","column":"id","as":"alias"}"""
+    readAs[Sum, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Sum' aggregation with distinct" in {
+    val id = Sum(Column("id"), distinct = true)
+    val expected = """{"func":"sum","column":"id","distinct":true}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Sum' aggregation with distinct" in {
+    val expected = Sum(Column("id"), distinct = true)
+    val json = """{"func":"sum","column":"id","distinct":true}"""
+    readAs[Sum, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Sum' aggregation with distinct and alias" in {
+    val id = Sum(Column("id"), distinct = true, alias = Some("alias"))
+    val expected =
+      """{"func":"sum","column":"id","as":"alias","distinct":true}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Sum' aggregation with distinct and alias" in {
+    val expected = Sum(Column("id"), distinct = true, alias = Some("alias"))
+    val json = """{"func":"sum","column":"id","as":"alias","distinct":true}"""
+    readAs[Sum, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Count
+
+  it should "be able to serialize an 'Count' aggregation" in {
+    val id = Count(Column("id"), alias = None)
+    val expected = """{"func":"count","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Count' aggregation" in {
+    val expected = Count(Column("id"))
+    val json = """{"func":"count","column":"id"}"""
+    readAs[Count, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Count' aggregation with alias" in {
+    val id = Count(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"count","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Count' aggregation with alias" in {
+    val expected = Count(Column("id"), alias = Some("alias"))
+    val json = """{"func":"count","column":"id","as":"alias"}"""
+    readAs[Count, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Count' aggregation with distinct" in {
+    val id = Count(Column("id"), distinct = true)
+    val expected = """{"func":"count","column":"id","distinct":true}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Count' aggregation with distinct" in {
+    val expected = Count(Column("id"), distinct = true)
+    val json = """{"func":"count","column":"id","distinct":true}"""
+    readAs[Count, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Count' aggregation with distinct and alias" in {
+    val id = Count(Column("id"), distinct = true, alias = Some("alias"))
+    val expected =
+      """{"func":"count","column":"id","as":"alias","distinct":true}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Count' aggregation with distinct and alias" in {
+    val expected = Count(Column("id"), distinct = true, alias = Some("alias"))
+    val json = """{"func":"count","column":"id","as":"alias","distinct":true}"""
+    readAs[Count, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Avg
+
+  it should "be able to serialize an 'Avg' aggregation" in {
+    val id = Avg(Column("id"), alias = None)
+    val expected = """{"func":"avg","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Avg' aggregation" in {
+    val expected = Avg(Column("id"))
+    val json = """{"func":"avg","column":"id"}"""
+    readAs[Avg, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Avg' aggregation with alias" in {
+    val id = Avg(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"avg","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Avg' aggregation with alias" in {
+    val expected = Avg(Column("id"), alias = Some("alias"))
+    val json = """{"func":"avg","column":"id","as":"alias"}"""
+    readAs[Avg, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Max
+
+  it should "be able to serialize an 'Max' aggregation" in {
+    val id = Max(Column("id"), alias = None)
+    val expected = """{"func":"max","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Max' aggregation" in {
+    val expected = Max(Column("id"))
+    val json = """{"func":"max","column":"id"}"""
+    readAs[Max, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Max' aggregation with alias" in {
+    val id = Max(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"max","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Max' aggregation with alias" in {
+    val expected = Max(Column("id"), alias = Some("alias"))
+    val json = """{"func":"max","column":"id","as":"alias"}"""
+    readAs[Max, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Min
+
+  it should "be able to serialize an 'Min' aggregation" in {
+    val id = Min(Column("id"), alias = None)
+    val expected = """{"func":"min","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Min' aggregation" in {
+    val expected = Min(Column("id"))
+    val json = """{"func":"min","column":"id"}"""
+    readAs[Min, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Min' aggregation with alias" in {
+    val id = Min(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"min","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Min' aggregation with alias" in {
+    val expected = Min(Column("id"), alias = Some("alias"))
+    val json = """{"func":"min","column":"id","as":"alias"}"""
+    readAs[Min, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Abs
+
+  it should "be able to serialize an 'Abs' aggregation" in {
+    val id = Abs(Column("id"), alias = None)
+    val expected = """{"func":"abs","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Abs' aggregation" in {
+    val expected = Abs(Column("id"))
+    val json = """{"func":"abs","column":"id"}"""
+    readAs[Abs, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Abs' aggregation with alias" in {
+    val id = Abs(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"abs","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Abs' aggregation with alias" in {
+    val expected = Abs(Column("id"), alias = Some("alias"))
+    val json = """{"func":"abs","column":"id","as":"alias"}"""
+    readAs[Abs, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Ceil
+
+  it should "be able to serialize an 'Ceil' aggregation" in {
+    val id = Ceil(Column("id"), alias = None)
+    val expected = """{"func":"ceil","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Ceil' aggregation" in {
+    val expected = Ceil(Column("id"))
+    val json = """{"func":"ceil","column":"id"}"""
+    readAs[Ceil, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Ceil' aggregation with alias" in {
+    val id = Ceil(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"ceil","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Ceil' aggregation with alias" in {
+    val expected = Ceil(Column("id"), alias = Some("alias"))
+    val json = """{"func":"ceil","column":"id","as":"alias"}"""
+    readAs[Ceil, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // Floor
+
+  it should "be able to serialize an 'Floor' aggregation" in {
+    val id = Floor(Column("id"), alias = None)
+    val expected = """{"func":"floor","column":"id"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Floor' aggregation" in {
+    val expected = Floor(Column("id"))
+    val json = """{"func":"floor","column":"id"}"""
+    readAs[Floor, Aggregation](json) { _ should equal(expected) }
+  }
+
+  it should "be able to serialize an 'Floor' aggregation with alias" in {
+    val id = Floor(Column("id"), alias = Some("alias"))
+    val expected = """{"func":"floor","column":"id","as":"alias"}"""
+    write[Aggregation](id) should equal(expected)
+  }
+
+  it should "be able to deserialize an 'Floor' aggregation with alias" in {
+    val expected = Floor(Column("id"), alias = Some("alias"))
+    val json = """{"func":"floor","column":"id","as":"alias"}"""
+    readAs[Floor, Aggregation](json) { _ should equal(expected) }
+  }
+
+  // unknown aggregation function
+
+  it should "throw an exception if the aggregation function is unknown" in {
+    val json = """{"func":"f","column":"id"}"""
+
+    the[MappingException] thrownBy read[Aggregation](json) should have message "unknown function 'f'"
+  }
 }
