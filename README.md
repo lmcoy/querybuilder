@@ -68,3 +68,171 @@ The query can be run with
 ```scala
 val result: Seq[Map[String, Any]] = b.query()
 ```
+
+# JSON input
+
+The input JSON must have the following format:
+
+```
+{
+    "columns": [...],
+    "distinct": true|false,
+    "filter": ... (optional),
+    "limit": Int (optional)
+}
+```
+
+The required content of the fields is specified in the following sections.
+
+## columns
+
+A column can be a simple string specifying a column that should be
+selected from the table. To obtain a column under a different name,
+the following JSON object can be used
+
+```json
+{
+    "column": "nameInTable",
+    "as": "newName"
+}
+```
+
+It is also possible to use an aggregation function on a column.
+The JSON object has to have the following format
+
+```
+{
+    "func": "sum" | "avg" | "ceil" | "floor" | "abs" | "min" | "max" | "count",
+    "column": "nameInTable",
+    "as": "newName"
+}
+```
+
+The functions `sum` and `count` can also contain the optional `distinct`
+flag, i.e.
+
+```
+{
+    "func": "sum" | "count",
+    "column": "nameInTable",
+    "as": "newName",
+    "distinct": true | false
+}
+```
+
+## filter
+
+A filter is defined as tree of filter functions.
+
+
+The basic filter type is a binary filter, e.g. the `=` comparison.
+They can be specified with the following JSON object
+
+```
+{
+    "type": "=" | ">" | "<" | ">=" | "<=" | "<>",
+    "lhs": "columnName",
+    "rhs": value | { "column": "columnName" }
+}
+```
+
+The filters `between` and `not between` are also supported via
+
+```
+{
+    "type": "between" | "not between",
+    "lower": value,
+    "upper": value
+}
+```
+
+The filters `is null` and `is not null` are supported via
+
+```
+{
+    "type": "is null" | "is not null",
+    "column": "columnName"
+}
+```
+
+The filter `like` is supported via
+
+```json
+{
+    "type": "like",
+    "column": "columnName",
+    "pattern": "pattern"
+}
+```
+
+More complex filters can be created by using `And` and `Or`.
+
+```
+{
+    "type": "and" | "or",
+    "filters": [list of filters]
+}
+```
+
+For example the filter
+```SQL
+x = ? AND y IS NOT NULL
+```
+
+can be specified as
+
+```json
+{
+    "type":"and",
+    "filters": [
+        {
+            "type": "=",
+            "lhs": "x",
+            "rhs": 0
+        },
+        {
+            "type": "is not null",
+            "column": "y"
+        }
+    ]
+}
+```
+
+Also `and` and `or` can be chained, i.e.
+
+```SQL
+(id = ? or  id = ?) and (name = ? or  name = ?)
+```
+
+is equivalent to
+
+```json
+{
+    "type": "and",
+    "filters": [
+        {
+            "type": "or",
+            "filters": [
+                { "type": "=", "lhs": "id", "rhs": 1 },
+                { "type": "=", "lhs": "id", "rhs": 2 }
+            ]
+        }, {
+            "type": "or",
+            "filters": [
+                { "type": "=", "lhs": "name", "rhs": "peter" },
+                { "type": "=", "lhs": "name", "rhs": "steve" }
+            ]
+        },
+
+    ]
+}
+```
+
+The not operator is available via
+
+```
+{
+    "type": "not",
+    "filter": some filter
+}
+```
